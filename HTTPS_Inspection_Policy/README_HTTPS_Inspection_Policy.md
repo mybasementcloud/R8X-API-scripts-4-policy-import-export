@@ -2,25 +2,14 @@
 
 ## Check Point R8X API scripts for policy import, export, modification
 
+### HTTPS Inspection policy and layer related scripts
+
 These are very rough scripts for handling policy and layer related operations for Check Point Software Technologies SmartManagement versions R8X utilizing the Management API.
 
-## Repository Structure
+This folder handles the HTTPS Inspection policy and layer related scripts
 
-Scripts will live in folders specific to their purpose with respect to the type of policy or layers they addrees, so specifically:
-
-- Access Control Policy
-  - List Access Control Layers
-  - List Access Control Layers from Policy Packages
-  - more pending
 - HTTPS Inspection Policy
   - pending
-- Threat Prevention Policy
-  - List Threat Prevention Layers
-  - List Threat Prevention Layers from Policy Packages
-  - Threat Prevention Profiles
-  - Threat Prevention Rulebase
-  - Threat Prevention Rulebase Exceptions - Global Exceptions
-  - more pending
 
 As these are explicitly different policy data sets.
 
@@ -46,7 +35,7 @@ The scripts are currently not MDSM aware by nature, but script modification of t
 
 ## Caveats and Identified Limitations
 
-The CAVEATS_AND_LIMITATIONS.md file will address caveats and identified limitations
+The CAVEATS_AND_LIMITATIONS_HTTPS_Inspection_Policy.md file will address caveats and identified limitations for the HTTPS Inspection scripts
 
 ## Future
 
@@ -56,4 +45,5 @@ Depending on the 4th dimension resourse availability (time), these scripts may b
 - Expanded to handle more key value sets for a specific script target output
 - Edited to address updates in the API beyond version 1.7
 - Edited to address support of back versions of the API, not earlier than R80.10
-- Other policy elements from the existing technologies if available to the API, like NAT
+- Other policy elements from the existing technologies if available to the API
+- Handling of multiple available HTTPS Inspection Layers versus the current singularity

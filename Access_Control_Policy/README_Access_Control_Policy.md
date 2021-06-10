@@ -2,24 +2,19 @@
 
 ## Check Point R8X API scripts for policy import, export, modification
 
+### Access Control policy and layer related scripts
+
 These are very rough scripts for handling policy and layer related operations for Check Point Software Technologies SmartManagement versions R8X utilizing the Management API.
 
 ## Repository Structure
 
-Scripts will live in folders specific to their purpose with respect to the type of policy or layers they addrees, so specifically:
+This folder handles the Access Control policy and layer related scripts
 
 - Access Control Policy
   - List Access Control Layers
+    - Provide a selection list of all Access Control layers in the active Management Host or MDSM Domain [future], on selection that layer will be output to json via the show access-layer command
   - List Access Control Layers from Policy Packages
-  - more pending
-- HTTPS Inspection Policy
-  - pending
-- Threat Prevention Policy
-  - List Threat Prevention Layers
-  - List Threat Prevention Layers from Policy Packages
-  - Threat Prevention Profiles
-  - Threat Prevention Rulebase
-  - Threat Prevention Rulebase Exceptions - Global Exceptions
+    - Provide a selection list of Access Control layers as provided in the policy packages in the active Management Host or MDSM Domain [future], on selection that layer will be output to json via the show access-layer command -- essentially dump the ordered layers of the policy as used in policies
   - more pending
 
 As these are explicitly different policy data sets.
@@ -46,7 +41,7 @@ The scripts are currently not MDSM aware by nature, but script modification of t
 
 ## Caveats and Identified Limitations
 
-The CAVEATS_AND_LIMITATIONS.md file will address caveats and identified limitations
+The CAVEATS_AND_LIMITATIONS_Access_Control_Policy.md file will address caveats and identified limitations for the Access Control scripts
 
 ## Future
 
