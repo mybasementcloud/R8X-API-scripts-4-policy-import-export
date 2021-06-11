@@ -17,9 +17,9 @@ Scripts will live in folders specific to their purpose with respect to the type 
 - Threat Prevention Policy
   - List Threat Prevention Layers
   - List Threat Prevention Layers from Policy Packages
-  - Threat Prevention Profiles
-  - Threat Prevention Rulebase
-  - Threat Prevention Rulebase Exceptions - Global Exceptions
+  - Threat Prevention Profiles (Export/Import)
+  - Threat Prevention Rulebase (Export/Import)
+  - Threat Prevention Rulebase Exceptions - Global Exceptions (Export/Import)
   - more pending
 
 As these are explicitly different policy data sets.

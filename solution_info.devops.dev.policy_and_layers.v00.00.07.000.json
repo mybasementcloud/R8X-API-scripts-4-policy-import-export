@@ -1,0 +1,23 @@
+{ "file_meta_info" : {
+	"filetype" : "solution_info",
+	"fileversion" : "02.00.00",
+	"filerevision" : "000",
+	"filedate" : "2021-06-09",
+	"fileinformationlevel" : "000",
+	"MinCMDTemplateVersion" : "06.03.01"
+}, 
+"solution_info" : {
+	"ScriptSeries" : "\"R8X-API-scripts-4-policy-import-export\"",
+	"ScriptSeriesShort" : "devops.dev - Policy_and_Layers",
+	"ScriptDate" : "2021-06-09",
+	"ScriptVersion" : "00.00.07",
+	"ScriptRevision" : "000",
+	"TemplateVersion" : "00.60.07",
+	"TemplateLevel" : "006",
+	"SubScriptsLevel" : "000",
+	"SubScriptsVersion" : "00.60.07",
+	"APISubScriptsLevel" : "006",
+	"APISubScriptsVersion" : "00.60.07",
+	"APISubScriptsRevision" : "000"
+} 
+}

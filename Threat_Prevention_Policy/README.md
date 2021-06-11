@@ -13,26 +13,30 @@ This folder handles the Threat Prevention policy and layer related scripts
     - Provide a selection list of all Threat Prevention rules layers in the active Management Host or MDSM Domain [future], on selection that layer will be output to json via the show threat-layer command
   - List Threat Prevention Layers from Policy Packages
     - Provide a selection list of Threat Prevention rules layers as provided in the policy packages in the active Management Host or MDSM Domain [future], on selection that layer will be output to json via the show threat-layer command -- essentially dump the ordered layers of the policy as used in policies
-  - Threat Prevention Profiles
+  - Threat Prevention Profiles (Export/Import)
     - Generate an export CSV files for the Threat Prevention Profiles
     - Export Threat Prevention Profiles to FOR_REFERENCE_ONLY CSV with additional details about the profile that are useful for other operations or research
     - Export Threat Prevention Profiles to EXPORT CSV that should import the profiles to a different Management Host or MDSM Domain with the appropriate mgmt_cli command utilizing --batch filename option
-    - Import command:  
-    ```mgmt_cli -r true add threat-profile --batch ./zz.threat_profiles.export.HOST.DTGSZ.csv details-level full -f json | tee -a import_threat_profiles_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
-  - Threat Prevention Rulebase
+    - Import Threat Prevention Profiles from CSV based on selection of CSV file with EXPORT naming convention from subfolder _import.csv
+    - Import command RAW:  
+    ```mgmt_cli -r true add threat-profile --batch ./zz.threat_profiles.export.HOST.DTGSZ.csv details-level full --ignore-errors true -f json | tee -a import_threat_profiles_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
+  - Threat Prevention Rulebase (Export/Import)
     - Provides selection of target Threat Prevention layer to export
     - Generate an export CSV files for the Threat Prevention Rulebase for the selected layer
     - Export Threat Prevention Rulebase to FOR_REFERENCE_ONLY CSV with additional details about the rulebase for the selected layer that are useful for other operations or research
     - Export Threat Prevention Rulebase to EXPORT CSV that should import the profiles to a different Management Host or MDSM Domain with the appropriate mgmt_cli command utilizing --batch filename option
-    - Import command:  
-    ```mgmt_cli -r true add threat-rule --batch ./z.threat_rulebase.LAYER.export.HOSTNAME.DTGSZ.csv details-level full -f json | tee -a import_threat_rules_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
-  - Threat Prevention Rulebase Exceptions - Global Exceptions
+    - Import Threat Prevention Rulebase from CSV based on selection of CSV file with EXPORT naming convention from subfolder _import.csv
+    - *NOTE!*  Import may required modification of the first CSV column to reflect the target Threat Prevention layer to which the rulebase should be applied, which may not be the same as the exported layer, which is named in the first column.
+    - Import command RAW:  
+    ```mgmt_cli -r true add threat-rule --batch ./z.threat_rulebase.LAYER.export.HOSTNAME.DTGSZ.csv details-level full --ignore-errors true -f json | tee -a import_threat_rules_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
+  - Threat Prevention Rulebase Exceptions - Global Exceptions (Export/Import)
     - Provides selection of target Threat Prevention layer to export.  NOTE:  for the Global Exceptions, ANY layer choice will work as needed
     - Generate an export CSV files for the Threat Prevention Rule Exceptions Global Exceptions
     - Export Threat Prevention Rule Exceptions Global Exceptions to FOR_REFERENCE_ONLY CSV with additional details about the profile that are useful for other operations or research
     - Export Threat Prevention Rule Exceptions Global Exceptions to EXPORT CSV that should import the profiles to a different Management Host or MDSM Domain with the appropriate mgmt_cli command utilizing --batch filename option
-    - Import command:  
-    ```mgmt_cli -r true add threat-exception --batch ./zz.threat_rule_exception_rulebase.Global_Exceptions.export.HOST.DTGSZ.csv details-level full -f json | tee -a import_global_threat_exceptions_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
+    - Import Threat Prevention Rule Exceptions from CSV based on selection of CSV file with EXPORT naming convention from subfolder _import.csv
+    - Import command RAW:  
+    ```mgmt_cli -r true add threat-exception --batch ./zz.threat_rule_exception_rulebase.Global_Exceptions.export.HOST.DTGSZ.csv details-level full --ignore-errors true -f json | tee -a import_global_threat_exceptions_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json```
   - more pending
 
 As these are explicitly different policy data sets.
