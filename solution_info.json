@@ -2,15 +2,15 @@
 	"filetype" : "solution_info",
 	"fileversion" : "02.00.00",
 	"filerevision" : "000",
-	"filedate" : "2021-06-09",
+	"filedate" : "2021-06-14",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "06.03.01"
 }, 
 "solution_info" : {
 	"ScriptSeries" : "\"R8X-API-scripts-4-policy-import-export\"",
 	"ScriptSeriesShort" : "devops.dev - Policy_and_Layers",
-	"ScriptDate" : "2021-06-09",
-	"ScriptVersion" : "00.00.07",
+	"ScriptDate" : "2021-06-14",
+	"ScriptVersion" : "00.00.08",
 	"ScriptRevision" : "000",
 	"TemplateVersion" : "00.60.07",
 	"TemplateLevel" : "006",
