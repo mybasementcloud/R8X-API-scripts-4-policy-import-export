@@ -14,9 +14,9 @@
 #
 #
 
-ScriptVersion=00.00.08
+ScriptVersion=00.00.09
 ScriptRevision=000
-ScriptDate=2021-06-14
+ScriptDate=2021-06-22
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -112,6 +112,29 @@ echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+# Export output array controls
+# -------------------------------------------------------------------------------------------------
+
+
+export minarray=0
+export maxarray=9
+export maxtagsarray=9
+export maxinstallarray=4
+
+# Access Control Specific
+export maxaccessarray=9
+
+# Threat Prevention Specific
+export maxoverridearray=9
+export maxextattributesarray=9
+export maxextattributesvaluesarray=4
+
+
+# HTTPS Inspection Specific
+export maxbladearray=7
+
+
+# -------------------------------------------------------------------------------------------------
 # Setup control variables
 # -------------------------------------------------------------------------------------------------
 
@@ -133,16 +156,21 @@ export script_operation=export
 #export script_operation=export_only
 #export script_operation=import
 
-#export api_show_command=
+export api_show_command=
 #export api_show_command='show access-layer'
 #export api_show_command='show access-layers'
 #export api_show_command='show access-rulebase'
+#export api_show_command='show https-layer'
+#export api_show_command='show https-layers'
+#export api_show_command='show https-rulebase'
 #export api_show_command='show threat-layer'
 #export api_show_command='show threat-rulebase'
 #export api_show_command='show threat-rule-exception-rulebase'
 export api_show_command='show threat-profiles'
 
 export api_add_command=
+#export api_add_command='add https-layer'
+#export api_add_command='add https-rule'
 #export api_add_command='add threat-layer'
 #export api_add_command='add threat-rule'
 #export api_add_command='add threat-exception'
@@ -435,7 +463,7 @@ export exportfile=${exportfilepath4reference}/${exportfileprefix}.${forreference
 
 export csvheader=''
 #export csvheader=${csvheader}', "name"'
-export csvheader=${csvheader}'"name", "color", "comments"'
+export csvheader=${csvheader}'"name", "uid", "color", "comments"'
 export csvheader=${csvheader}', "type"'
 export csvheader=${csvheader}', "active-protections-performance-impact", "active-protections-severity"'
 export csvheader=${csvheader}', "confidence-level-low", "confidence-level-medium", "confidence-level-high"'
@@ -445,20 +473,36 @@ export csvheader=${csvheader}', "malicious-mail-policy-settings.email-action", "
 export csvheader=${csvheader}', "malicious-mail-policy-settings.add-email-subject-prefix", "malicious-mail-policy-settings.email-subject-prefix-text", "malicious-mail-policy-settings.add-customized-text-to-email-body", "malicious-mail-policy-settings.email-body-customized-text", "malicious-mail-policy-settings.send-copy"'
 export csvheader=${csvheader}', "scan-malicious-links.max-bytes", "scan-malicious-links.max-links"'
 export csvheader=${csvheader}', "threat-emulation", "anti-virus", "anti-bot"'
-export csvheader=${csvheader}', "overrides.0.protection", "overrides.0.protection-uid", "overrides.0.action", "overrides.0.track", "overrides.0.capture-packets"'
-export csvheader=${csvheader}', "overrides.1.protection", "overrides.1.protection-uid", "overrides.1.action", "overrides.1.track", "overrides.1.capture-packets"'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export csvheader=${csvheader}', "overrides.'${i}'.protection"'
+    export csvheader=${csvheader}', "overrides.'${i}'.protection-uid"'
+    export csvheader=${csvheader}', "overrides.'${i}'.action", "overrides.'${i}'.track", "overrides.'${i}'.capture-packets"'
+done
 export csvheader=${csvheader}', "use-extended-attributes"'
-export csvheader=${csvheader}', "extended-attributes-to-activate.0.name", "extended-attributes-to-activate.0.values.0.name", "extended-attributes-to-activate.0.values.1.name", "extended-attributes-to-activate.0.values.2.name", "extended-attributes-to-activate.0.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-activate.1.name", "extended-attributes-to-activate.1.values.0.name", "extended-attributes-to-activate.1.values.1.name", "extended-attributes-to-activate.1.values.2.name", "extended-attributes-to-activate.1.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-activate.2.name", "extended-attributes-to-activate.2.values.0.name", "extended-attributes-to-activate.2.values.1.name", "extended-attributes-to-activate.2.values.2.name", "extended-attributes-to-activate.2.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-activate.3.name", "extended-attributes-to-activate.3.values.0.name", "extended-attributes-to-activate.3.values.1.name", "extended-attributes-to-activate.3.values.2.name", "extended-attributes-to-activate.3.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-deactivate.0.name", "extended-attributes-to-deactivate.0.values.0.name", "extended-attributes-to-deactivate.0.values.1.name", "extended-attributes-to-deactivate.0.values.2.name", "extended-attributes-to-deactivate.0.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-deactivate.1.name", "extended-attributes-to-deactivate.1.values.0.name", "extended-attributes-to-deactivate.1.values.1.name", "extended-attributes-to-deactivate.1.values.2.name", "extended-attributes-to-deactivate.1.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-deactivate.2.name", "extended-attributes-to-deactivate.2.values.0.name", "extended-attributes-to-deactivate.2.values.1.name", "extended-attributes-to-deactivate.2.values.2.name", "extended-attributes-to-deactivate.2.values.3.name"'
-export csvheader=${csvheader}', "extended-attributes-to-deactivate.3.name", "extended-attributes-to-deactivate.3.values.0.name", "extended-attributes-to-deactivate.3.values.1.name", "extended-attributes-to-deactivate.3.values.2.name", "extended-attributes-to-deactivate.3.values.3.name"'
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.name"'
+    export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.uid"'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    done
+done
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.name"'
+    export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.uid"'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    done
+done
 export csvheader=${csvheader}', "use-indicators"'
-#export csvheader=${csvheader}', "indicator-overrides.0.action", "indicator-overrides.0.indicator", "indicator-overrides.1.action", "indicator-overrides.1.indicator"'
-export csvheader=${csvheader}', "tags.0", "tags.1", "tags.2", "tags.3", "tags.4", "tags.5"'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export csvheader=${csvheader}', "indicator-overrides.'${i}'.action", "indicator-overrides.'${i}'.indicator"'
+    export csvheader=${csvheader}', "indicator-overrides.'${i}'.uid"'
+done
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
 export csvheader=${csvheader}', "meta-info.validation-state", "meta-info.last-modifier", "meta-info.creator"'
 
 #echo ${csvheader} > ${exportfileheader}
@@ -474,7 +518,7 @@ echo | tee -a -i ${logfilepath}
 
 export jsonvaluekeys=''
 #export jsonvaluekeys=${jsonvaluekeys}', .["name"]'
-export jsonvaluekeys=${jsonvaluekeys}'.["name"], .["color"], .["comments"]'
+export jsonvaluekeys=${jsonvaluekeys}'.["name"], ["uid"], .["color"], .["comments"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["type"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["active-protections-performance-impact"], .["active-protections-severity"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["confidence-level-low"], .["confidence-level-medium"], .["confidence-level-high"]'
@@ -484,20 +528,36 @@ export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["ema
 export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["add-email-subject-prefix"], .["malicious-mail-policy-settings"]["email-subject-prefix-text"], .["malicious-mail-policy-settings"]["add-customized-text-to-email-body"], .["malicious-mail-policy-settings"]["email-body-customized-text"], .["malicious-mail-policy-settings"]["send-copy"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["scan-malicious-links"]["max-bytes"], .["scan-malicious-links"]["max-links"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["threat-emulation"], .["anti-virus"], .["anti-bot"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][0]["protection"], .["overrides"][0]["protection-uid"], .["overrides"][0]["override"]["action"], .["overrides"][0]["override"]["track"], .["overrides"][0]["override"]["capture-packets"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][1]["protection"], .["overrides"][1]["protection-uid"], .["overrides"][1]["override"]["action"], .["overrides"][1]["override"]["track"], .["overrides"][1]["override"]["capture-packets"]'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection-uid"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["override"]["action"], .["overrides"]['${i}']["override"]["track"], .["overrides"]['${i}']["override"]["capture-packets"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["use-extended-attributes"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][0]["name"], .["extended-attributes-to-activate"][0]["values"][0]["name"], .["extended-attributes-to-activate"][0]["values"][1]["name"], .["extended-attributes-to-activate"][0]["values"][2]["name"], .["extended-attributes-to-activate"][0]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][1]["name"], .["extended-attributes-to-activate"][1]["values"][0]["name"], .["extended-attributes-to-activate"][1]["values"][1]["name"], .["extended-attributes-to-activate"][1]["values"][2]["name"], .["extended-attributes-to-activate"][1]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][2]["name"], .["extended-attributes-to-activate"][2]["values"][0]["name"], .["extended-attributes-to-activate"][2]["values"][1]["name"], .["extended-attributes-to-activate"][2]["values"][2]["name"], .["extended-attributes-to-activate"][2]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][3]["name"], .["extended-attributes-to-activate"][3]["values"][0]["name"], .["extended-attributes-to-activate"][3]["values"][1]["name"], .["extended-attributes-to-activate"][3]["values"][2]["name"], .["extended-attributes-to-activate"][3]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][1]["name"], .["extended-attributes-to-deactivate"][0]["values"][2]["name"], .["extended-attributes-to-deactivate"][0]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][0]["name"], .["extended-attributes-to-deactivate"][1]["values"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][2]["name"], .["extended-attributes-to-deactivate"][1]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][0]["name"], .["extended-attributes-to-deactivate"][2]["values"][1]["name"], .["extended-attributes-to-deactivate"][2]["values"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][3]["name"], .["extended-attributes-to-deactivate"][3]["values"][0]["name"], .["extended-attributes-to-deactivate"][3]["values"][1]["name"], .["extended-attributes-to-deactivate"][3]["values"][2]["name"], .["extended-attributes-to-deactivate"][3]["values"][3]["name"]'
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["name"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["uid"]'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["name"]'
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["uid"]'
+    done
+done
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["name"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["uid"]'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["name"]'
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["uid"]'
+    done
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["use-indicators"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"][0]["action"], .["indicator-overrides"][0]["indicator"], .["indicator-overrides"][1]["action"], .["indicator-overrides"][1]["indicator"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"]'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["action"], .["indicator-overrides"]['${i}']["indicator"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["uid"]'
+done
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["meta-info"]["validation-state"], .["meta-info"]["last-modifier"], .["meta-info"]["creator"]'
 
 echo | tee -a -i ${logfilepath}
@@ -541,20 +601,48 @@ export csvheader=${csvheader}', "malicious-mail-policy-settings.email-action", "
 export csvheader=${csvheader}', "malicious-mail-policy-settings.add-email-subject-prefix", "malicious-mail-policy-settings.email-subject-prefix-text", "malicious-mail-policy-settings.add-customized-text-to-email-body", "malicious-mail-policy-settings.email-body-customized-text", "malicious-mail-policy-settings.send-copy"'
 export csvheader=${csvheader}', "scan-malicious-links.max-bytes", "scan-malicious-links.max-links"'
 export csvheader=${csvheader}', "threat-emulation", "anti-virus", "anti-bot"'
-export csvheader=${csvheader}', "overrides.0.protection", "overrides.0.action", "overrides.0.track", "overrides.0.capture-packets"'
-export csvheader=${csvheader}', "overrides.1.protection", "overrides.1.action", "overrides.1.track", "overrides.1.capture-packets"'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export csvheader=${csvheader}', "overrides.'${i}'.protection"'
+    #export csvheader=${csvheader}', "overrides.'${i}'.protection-uid"'
+    export csvheader=${csvheader}', "overrides.'${i}'.action", "overrides.'${i}'.track", "overrides.'${i}'.capture-packets"'
+done
 export csvheader=${csvheader}', "use-extended-attributes"'
-#export csvheader=${csvheader}', "activate-protections-by-extended-attributes.0.name", "activate-protections-by-extended-attributes.0.values.0.name", "activate-protections-by-extended-attributes.0.values.1.name", "activate-protections-by-extended-attributes.0.values.2.name", "activate-protections-by-extended-attributes.0.values.3.name"'
-#export csvheader=${csvheader}', "activate-protections-by-extended-attributes.1.name", "activate-protections-by-extended-attributes.1.values.0.name", "activate-protections-by-extended-attributes.1.values.1.name", "activate-protections-by-extended-attributes.1.values.2.name", "activate-protections-by-extended-attributes.1.values.3.name"'
-#export csvheader=${csvheader}', "activate-protections-by-extended-attributes.2.name", "activate-protections-by-extended-attributes.2.values.0.name", "activate-protections-by-extended-attributes.2.values.1.name", "activate-protections-by-extended-attributes.2.values.2.name", "activate-protections-by-extended-attributes.2.values.3.name"'
-#export csvheader=${csvheader}', "activate-protections-by-extended-attributes.3.name", "activate-protections-by-extended-attributes.3.values.0.name", "activate-protections-by-extended-attributes.3.values.1.name", "activate-protections-by-extended-attributes.3.values.2.name", "activate-protections-by-extended-attributes.3.values.3.name"'
-#export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.0.name", "deactivate-protections-by-extended-attributes.0.values.0.name", "deactivate-protections-by-extended-attributes.0.values.1.name", "deactivate-protections-by-extended-attributes.0.values.2.name", "deactivate-protections-by-extended-attributes.0.values.3.name"'
-#export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.1.name", "deactivate-protections-by-extended-attributes.1.values.0.name", "deactivate-protections-by-extended-attributes.1.values.1.name", "deactivate-protections-by-extended-attributes.1.values.2.name", "deactivate-protections-by-extended-attributes.1.values.3.name"'
-#export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.2.name", "deactivate-protections-by-extended-attributes.2.values.0.name", "deactivate-protections-by-extended-attributes.2.values.1.name", "deactivate-protections-by-extended-attributes.2.values.2.name", "deactivate-protections-by-extended-attributes.2.values.3.name"'
-#export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.3.name", "deactivate-protections-by-extended-attributes.3.values.0.name", "deactivate-protections-by-extended-attributes.3.values.1.name", "deactivate-protections-by-extended-attributes.3.values.2.name", "deactivate-protections-by-extended-attributes.3.values.3.name"'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.name"'
+    #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.uid"'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    #done
+#done
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.name"'
+    #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.uid"'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    #done
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
 export csvheader=${csvheader}', "use-indicators"'
-#export csvheader=${csvheader}', "indicator-overrides.0.action", "indicator-overrides.0.indicator", "indicator-overrides.1.action", "indicator-overrides.1.indicator"'
-export csvheader=${csvheader}', "tags.0", "tags.1", "tags.2", "tags.3", "tags.4", "tags.5"'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.action", "indicator-overrides.'${i}'.indicator"'
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.uid"'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
 export csvheader=${csvheader}', "ignore-warnings", "ignore-errors"'
 
 #echo ${csvheader} > ${exportexportfileheader}
@@ -579,22 +667,48 @@ export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["ema
 export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["add-email-subject-prefix"], .["malicious-mail-policy-settings"]["email-subject-prefix-text"], .["malicious-mail-policy-settings"]["add-customized-text-to-email-body"], .["malicious-mail-policy-settings"]["email-body-customized-text"], .["malicious-mail-policy-settings"]["send-copy"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["scan-malicious-links"]["max-bytes"], .["scan-malicious-links"]["max-links"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["threat-emulation"], .["anti-virus"], .["anti-bot"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][0]["protection"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][0]["override"]["action"], .["overrides"][0]["override"]["track"], .["overrides"][0]["override"]["capture-packets"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][1]["protection"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][1]["override"]["action"], .["overrides"][1]["override"]["track"], .["overrides"][1]["override"]["capture-packets"]'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection-uid"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["override"]["action"], .["overrides"]['${i}']["override"]["track"], .["overrides"]['${i}']["override"]["capture-packets"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["use-extended-attributes"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][0]["name"], .["extended-attributes-to-activate"][0]["values"][0]["name"], .["extended-attributes-to-activate"][0]["values"][1]["name"], .["extended-attributes-to-activate"][0]["values"][2]["name"], .["extended-attributes-to-activate"][0]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][1]["name"], .["extended-attributes-to-activate"][1]["values"][0]["name"], .["extended-attributes-to-activate"][1]["values"][1]["name"], .["extended-attributes-to-activate"][1]["values"][2]["name"], .["extended-attributes-to-activate"][1]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][2]["name"], .["extended-attributes-to-activate"][2]["values"][0]["name"], .["extended-attributes-to-activate"][2]["values"][1]["name"], .["extended-attributes-to-activate"][2]["values"][2]["name"], .["extended-attributes-to-activate"][2]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][3]["name"], .["extended-attributes-to-activate"][3]["values"][0]["name"], .["extended-attributes-to-activate"][3]["values"][1]["name"], .["extended-attributes-to-activate"][3]["values"][2]["name"], .["extended-attributes-to-activate"][3]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][1]["name"], .["extended-attributes-to-deactivate"][0]["values"][2]["name"], .["extended-attributes-to-deactivate"][0]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][0]["name"], .["extended-attributes-to-deactivate"][1]["values"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][2]["name"], .["extended-attributes-to-deactivate"][1]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][0]["name"], .["extended-attributes-to-deactivate"][2]["values"][1]["name"], .["extended-attributes-to-deactivate"][2]["values"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][3]["name"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][3]["name"], .["extended-attributes-to-deactivate"][3]["values"][0]["name"], .["extended-attributes-to-deactivate"][3]["values"][1]["name"], .["extended-attributes-to-deactivate"][3]["values"][2]["name"], .["extended-attributes-to-deactivate"][3]["values"][3]["name"]'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["name"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["uid"]'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["name"]'
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["uid"]'
+    #done
+#done
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["name"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["uid"]'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["name"]'
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["uid"]'
+    #done
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
 export jsonvaluekeys=${jsonvaluekeys}', .["use-indicators"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"][0]["action"], .["indicator-overrides"][0]["indicator"], .["indicator-overrides"][1]["action"], .["indicator-overrides"][1]["indicator"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"]'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["action"], .["indicator-overrides"]['${i}']["indicator"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["uid"]'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', true, true'
 
 echo | tee -a -i ${logfilepath}
@@ -633,20 +747,42 @@ export csvheader=${csvheader}', "malicious-mail-policy-settings.email-action", "
 export csvheader=${csvheader}', "malicious-mail-policy-settings.add-email-subject-prefix", "malicious-mail-policy-settings.email-subject-prefix-text", "malicious-mail-policy-settings.add-customized-text-to-email-body", "malicious-mail-policy-settings.email-body-customized-text", "malicious-mail-policy-settings.send-copy"'
 export csvheader=${csvheader}', "scan-malicious-links.max-bytes", "scan-malicious-links.max-links"'
 export csvheader=${csvheader}', "threat-emulation", "anti-virus", "anti-bot"'
-export csvheader=${csvheader}', "overrides.0.protection", "overrides.0.action", "overrides.0.track", "overrides.0.capture-packets"'
-export csvheader=${csvheader}', "overrides.1.protection", "overrides.1.action", "overrides.1.track", "overrides.1.capture-packets"'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export csvheader=${csvheader}', "overrides.'${i}'.protection"'
+    #export csvheader=${csvheader}', "overrides.'${i}'.protection-uid"'
+    export csvheader=${csvheader}', "overrides.'${i}'.action", "overrides.'${i}'.track", "overrides.'${i}'.capture-packets"'
+done
 export csvheader=${csvheader}', "use-extended-attributes"'
-export csvheader=${csvheader}', "activate-protections-by-extended-attributes.0.name", "activate-protections-by-extended-attributes.0.values.0.name", "activate-protections-by-extended-attributes.0.values.1.name", "activate-protections-by-extended-attributes.0.values.2.name", "activate-protections-by-extended-attributes.0.values.3.name"'
-export csvheader=${csvheader}', "activate-protections-by-extended-attributes.1.name", "activate-protections-by-extended-attributes.1.values.0.name", "activate-protections-by-extended-attributes.1.values.1.name", "activate-protections-by-extended-attributes.1.values.2.name", "activate-protections-by-extended-attributes.1.values.3.name"'
-export csvheader=${csvheader}', "activate-protections-by-extended-attributes.2.name", "activate-protections-by-extended-attributes.2.values.0.name", "activate-protections-by-extended-attributes.2.values.1.name", "activate-protections-by-extended-attributes.2.values.2.name", "activate-protections-by-extended-attributes.2.values.3.name"'
-export csvheader=${csvheader}', "activate-protections-by-extended-attributes.3.name", "activate-protections-by-extended-attributes.3.values.0.name", "activate-protections-by-extended-attributes.3.values.1.name", "activate-protections-by-extended-attributes.3.values.2.name", "activate-protections-by-extended-attributes.3.values.3.name"'
-export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.0.name", "deactivate-protections-by-extended-attributes.0.values.0.name", "deactivate-protections-by-extended-attributes.0.values.1.name", "deactivate-protections-by-extended-attributes.0.values.2.name", "deactivate-protections-by-extended-attributes.0.values.3.name"'
-export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.1.name", "deactivate-protections-by-extended-attributes.1.values.0.name", "deactivate-protections-by-extended-attributes.1.values.1.name", "deactivate-protections-by-extended-attributes.1.values.2.name", "deactivate-protections-by-extended-attributes.1.values.3.name"'
-export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.2.name", "deactivate-protections-by-extended-attributes.2.values.0.name", "deactivate-protections-by-extended-attributes.2.values.1.name", "deactivate-protections-by-extended-attributes.2.values.2.name", "deactivate-protections-by-extended-attributes.2.values.3.name"'
-export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.3.name", "deactivate-protections-by-extended-attributes.3.values.0.name", "deactivate-protections-by-extended-attributes.3.values.1.name", "deactivate-protections-by-extended-attributes.3.values.2.name", "deactivate-protections-by-extended-attributes.3.values.3.name"'
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.name"'
+    export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.uid"'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    done
+done
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.name"'
+    export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.uid"'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    done
+done
 export csvheader=${csvheader}', "use-indicators"'
-#export csvheader=${csvheader}', "indicator-overrides.0.action", "indicator-overrides.0.indicator", "indicator-overrides.1.action", "indicator-overrides.1.indicator"'
-export csvheader=${csvheader}', "tags.0", "tags.1", "tags.2", "tags.3", "tags.4", "tags.5"'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.action", "indicator-overrides.'${i}'.indicator"'
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.uid"'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
 export csvheader=${csvheader}', "ignore-warnings", "ignore-errors"'
 
 #echo ${csvheader} > ${export2exportfileheader}
@@ -671,22 +807,42 @@ export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["ema
 export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["add-email-subject-prefix"], .["malicious-mail-policy-settings"]["email-subject-prefix-text"], .["malicious-mail-policy-settings"]["add-customized-text-to-email-body"], .["malicious-mail-policy-settings"]["email-body-customized-text"], .["malicious-mail-policy-settings"]["send-copy"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["scan-malicious-links"]["max-bytes"], .["scan-malicious-links"]["max-links"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["threat-emulation"], .["anti-virus"], .["anti-bot"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][0]["protection"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][0]["override"]["action"], .["overrides"][0]["override"]["track"], .["overrides"][0]["override"]["capture-packets"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][1]["protection"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["overrides"][1]["override"]["action"], .["overrides"][1]["override"]["track"], .["overrides"][1]["override"]["capture-packets"]'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection-uid"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["override"]["action"], .["overrides"]['${i}']["override"]["track"], .["overrides"]['${i}']["override"]["capture-packets"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["use-extended-attributes"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][0]["name"], .["extended-attributes-to-activate"][0]["values"][0]["name"], .["extended-attributes-to-activate"][0]["values"][1]["name"], .["extended-attributes-to-activate"][0]["values"][2]["name"], .["extended-attributes-to-activate"][0]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][1]["name"], .["extended-attributes-to-activate"][1]["values"][0]["name"], .["extended-attributes-to-activate"][1]["values"][1]["name"], .["extended-attributes-to-activate"][1]["values"][2]["name"], .["extended-attributes-to-activate"][1]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][2]["name"], .["extended-attributes-to-activate"][2]["values"][0]["name"], .["extended-attributes-to-activate"][2]["values"][1]["name"], .["extended-attributes-to-activate"][2]["values"][2]["name"], .["extended-attributes-to-activate"][2]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"][3]["name"], .["extended-attributes-to-activate"][3]["values"][0]["name"], .["extended-attributes-to-activate"][3]["values"][1]["name"], .["extended-attributes-to-activate"][3]["values"][2]["name"], .["extended-attributes-to-activate"][3]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][0]["name"], .["extended-attributes-to-deactivate"][0]["values"][1]["name"], .["extended-attributes-to-deactivate"][0]["values"][2]["name"], .["extended-attributes-to-deactivate"][0]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][0]["name"], .["extended-attributes-to-deactivate"][1]["values"][1]["name"], .["extended-attributes-to-deactivate"][1]["values"][2]["name"], .["extended-attributes-to-deactivate"][1]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][0]["name"], .["extended-attributes-to-deactivate"][2]["values"][1]["name"], .["extended-attributes-to-deactivate"][2]["values"][2]["name"], .["extended-attributes-to-deactivate"][2]["values"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"][3]["name"], .["extended-attributes-to-deactivate"][3]["values"][0]["name"], .["extended-attributes-to-deactivate"][3]["values"][1]["name"], .["extended-attributes-to-deactivate"][3]["values"][2]["name"], .["extended-attributes-to-deactivate"][3]["values"][3]["name"]'
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["name"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["uid"]'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["name"]'
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["uid"]'
+    done
+done
+for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["name"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["uid"]'
+    for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["name"]'
+        export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["uid"]'
+    done
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["use-indicators"]'
-#export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"][0]["action"], .["indicator-overrides"][0]["indicator"], .["indicator-overrides"][1]["action"], .["indicator-overrides"][1]["indicator"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"]'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["action"], .["indicator-overrides"]['${i}']["indicator"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["uid"]'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', true, true'
 
 echo | tee -a -i ${logfilepath}

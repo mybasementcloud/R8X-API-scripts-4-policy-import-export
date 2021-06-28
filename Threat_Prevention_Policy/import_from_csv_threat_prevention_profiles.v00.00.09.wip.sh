@@ -10,13 +10,13 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
-# SCRIPT Rough Example for importing threat prevention rule base exported to CSV with the export script
+# SCRIPT Rough Example for importing threat prevention profiles exported to CSV with the export script
 #
 #
 
-ScriptVersion=00.00.08
+ScriptVersion=00.00.09
 ScriptRevision=000
-ScriptDate=2021-06-14
+ScriptDate=2021-06-22
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -112,6 +112,29 @@ echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+# Export output array controls
+# -------------------------------------------------------------------------------------------------
+
+
+export minarray=0
+export maxarray=9
+export maxtagsarray=9
+export maxinstallarray=4
+
+# Access Control Specific
+export maxaccessarray=9
+
+# Threat Prevention Specific
+export maxoverridearray=9
+export maxextattributesarray=9
+export maxextattributesvaluesarray=4
+
+
+# HTTPS Inspection Specific
+export maxbladearray=7
+
+
+# -------------------------------------------------------------------------------------------------
 # Setup control variables
 # -------------------------------------------------------------------------------------------------
 
@@ -133,20 +156,25 @@ export policy_type_HTTPSI=false
 #export script_operation=export_only
 export script_operation=import
 
-#export api_show_command=
+export api_show_command=
 #export api_show_command='show access-layer'
 #export api_show_command='show access-layers'
 #export api_show_command='show access-rulebase'
+#export api_show_command='show https-layer'
+#export api_show_command='show https-layers'
+#export api_show_command='show https-rulebase'
 #export api_show_command='show threat-layer'
-export api_show_command='show threat-rulebase'
+#export api_show_command='show threat-rulebase'
 #export api_show_command='show threat-rule-exception-rulebase'
-#export api_show_command='show threat-profiles'
+export api_show_command='show threat-profiles'
 
-#export api_add_command=
+export api_add_command=
+#export api_add_command='add https-layer'
+#export api_add_command='add https-rule'
 #export api_add_command='add threat-layer'
-export api_add_command='add threat-rule'
+#export api_add_command='add threat-rule'
 #export api_add_command='add threat-exception'
-#export api_add_command='add threat-profile'
+export api_add_command='add threat-profile'
 
 #export commandfilename=${api_show_command// /_}
 export commandfilename=${api_add_command// /_}
@@ -397,7 +425,7 @@ echo
 
 
 export selectexportpath=${importfilepath}
-export selectexportfileprefix=${importfileslistprefix}.*.export
+export selectexportfileprefix=${importfileslistprefix}.export
 export selectexportfileext=${importfileext}
 export selectexportfile=${selectexportfileprefix}.*.${selectexportfileext}
 
@@ -503,7 +531,7 @@ export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
 #export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
 #export MgmtCLI_Show_OpParms='limit 100 offset 0 '${MgmtCLI_Show_OpParms}
 
-#mgmt_cli -r true add threat-rule --batch ./z.threat_rulebase.LAYER.export.HOSTNAME.DTGSZ.csv details-level full -f json | tee -a import_threat_rules_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json
+#mgmt_cli -r true add threat-profile --batch ./zz.threat_profiles.export.HOST.DTGSZ.csv details-level full -f json | tee -a import_threat_profiles_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json
 mgmt_cli ${MgmtCLI_Authentication} ${api_add_command} --batch ./${selectedfile} ${MgmtCLI_Show_OpParms} | tee -a ${resultsfile}
 
 echo '-------------------------------------------------------------------------------------------------'

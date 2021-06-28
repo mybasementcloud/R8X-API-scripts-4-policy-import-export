@@ -13,9 +13,9 @@
 # SCRIPTS Rough Examples for Export, Import, List Layer Names, and Delete operations for R8X Management API Policy Elements
 #
 #
-ScriptVersion=00.00.08
+ScriptVersion=00.00.09
 ScriptRevision=000
-ScriptDate=2021-06-14
+ScriptDate=2021-06-22
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA

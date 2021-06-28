@@ -10,13 +10,13 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
-# SCRIPT Rough Example for generating a list of layers from package for selection of a specific layer for show output - Threat Prevention layers
+# SCRIPT Rough Example for exporting threat prevention profiles - export only
 #
 #
 
-ScriptVersion=00.00.08
+ScriptVersion=00.00.09
 ScriptRevision=000
-ScriptDate=2021-06-14
+ScriptDate=2021-06-22
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -112,6 +112,29 @@ echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+# Export output array controls
+# -------------------------------------------------------------------------------------------------
+
+
+export minarray=0
+export maxarray=9
+export maxtagsarray=9
+export maxinstallarray=4
+
+# Access Control Specific
+export maxaccessarray=9
+
+# Threat Prevention Specific
+export maxoverridearray=9
+export maxextattributesarray=9
+export maxextattributesvaluesarray=4
+
+
+# HTTPS Inspection Specific
+export maxbladearray=7
+
+
+# -------------------------------------------------------------------------------------------------
 # Setup control variables
 # -------------------------------------------------------------------------------------------------
 
@@ -128,21 +151,26 @@ export policy_type_HTTPSI=false
 # Script Operation Type configuration for script.  ONE of these needs to be true, all others false
 # Options:  export | import | list_layers
 #
-export script_operation=list_layers
+#export script_operation=list_layers
 #export script_operation=export
-#export script_operation=export_only
+export script_operation=export_only
 #export script_operation=import
 
-#export api_show_command=
+export api_show_command=
 #export api_show_command='show access-layer'
 #export api_show_command='show access-layers'
 #export api_show_command='show access-rulebase'
-export api_show_command='show threat-layer'
+#export api_show_command='show https-layer'
+#export api_show_command='show https-layers'
+#export api_show_command='show https-rulebase'
+#export api_show_command='show threat-layer'
 #export api_show_command='show threat-rulebase'
 #export api_show_command='show threat-rule-exception-rulebase'
-#export api_show_command='show threat-profiles'
+export api_show_command='show threat-profiles'
 
 export api_add_command=
+#export api_add_command='add https-layer'
+#export api_add_command='add https-rule'
 #export api_add_command='add threat-layer'
 #export api_add_command='add threat-rule'
 #export api_add_command='add threat-exception'
@@ -377,113 +405,11 @@ export MgmtCLI_Authentication='-r true --port '${apisslport}
 
 
 # -------------------------------------------------------------------------------------------------
-# Get the Array of layers
-# -------------------------------------------------------------------------------------------------
-
-
-echo 'Generate Array of Layers...' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-export MgmtCLI_Base_OpParms='-f json'
-export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-export MgmtCLI_Show_OpParms='limit 50 offset 0 '${MgmtCLI_Show_OpParms}
-
-GETLAYERSBYNAME="`mgmt_cli ${MgmtCLI_Authentication} show packages ${MgmtCLI_Show_OpParms} | ${JQ} '.packages[]."'${package_layer}'"[].name'`"
-
-LAYERSARRAY=()
-arraylength=0
-
-tcollayer=15
-
-echo 'Layers ('${package_layer}') :  ' | tee -a -i ${logfilepath}
-while read -r line; do
-    
-    #printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
-    if [[ ! " ${LAYERSARRAY[@]} " =~ " ${line} " ]]; then
-        # whatever you want to do when array doesn't contain value
-        LAYERSARRAY+=("${line}")
-        printf "%-${tcollayer}s - %s\n" '+ ADDING' "${line}" | tee -a -i ${logfilepath}
-    else
-        printf "%-${tcollayer}s - %s\n" '! SKIPPING' "${line}" | tee -a -i ${logfilepath}
-    fi
-    
-    arraylength=${#LAYERSARRAY[@]}
-    arrayelement=$((arraylength-1))
-    
-done <<< "${GETLAYERSBYNAME}"
-echo
-
-export arraylistsize=${arrayelement}
-
-
-# -------------------------------------------------------------------------------------------------
-# Document/show the current array of layers found and placed in the array
-# -------------------------------------------------------------------------------------------------
-
-
-echo 'Explicit Layers of type '${package_layer}' found: ' >> ${logfilepath}
-
-export arraylistelement=-1
-
-for j in "${LAYERSARRAY[@]}"
-do
-    export arraylistelement=$((arraylistelement+1))
-    printf "%-5s : %s\n" ${arraylistelement} ${j} >> ${logfilepath}
-done
-echo >> ${logfilepath}
-
-
-# -------------------------------------------------------------------------------------------------
-# Handle selection of specific layer to process
-# -------------------------------------------------------------------------------------------------
-
-
-export arrayelementchoice=
-export layername=
-
-echo | tee -a -i ${logfilepath}
-echo 'Select Layer of type '${package_layer}' for processing ( 0 for exit/quit ): ' | tee -a -i ${logfilepath}
-
-select layername in "${LAYERSARRAY[@]}";
-do
-    echo You picked : ${layername} \(${REPLY}\) | tee -a -i ${logfilepath}
-    
-    if [ x"${layername}" == x"" ] ; then
-        echo 'Not legal selection' | tee -a -i ${logfilepath}
-        echo 'Exiting...' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        exit 1
-    elif [ ${REPLY} -eq 0 ] ; then
-        echo 'Exiting...' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        exit 0
-    fi
-    
-    break;
-done
-
-echo 'Selection:  layername : ['${layername}'],  REPLY : ['${REPLY}']' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-export arrayelementchoice=$((REPLY-1))
-
-
-# -------------------------------------------------------------------------------------------------
 # Show what was selected and names of things
 # -------------------------------------------------------------------------------------------------
 
 
-export layerfilename=${layername// /_}
-export layerfilename=${layerfilename//\"}
-
-#printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
-
-echo | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'arraylistsize' "${arraylistsize}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'arrayelementchoice' "${arrayelementchoice}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'layername' "${layername}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'layerfilename' "${layerfilename}" | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+#echo
 
 
 # -------------------------------------------------------------------------------------------------
@@ -495,22 +421,22 @@ echo 'Generate working json file of API output for future processing...' | tee -
 
 #export detaillevelset=standard
 export detaillevelset=full
-export showfile=${showfilepath}/${showfileprefix}.${layerfilename}.${detaillevelset}.${localnamenow}.${showfileext}
-#export showfile=${showfilepath}/${showfileprefix}.${detaillevelset}.${localnamenow}.${showfileext}
+#export showfile=${showfilepath}/${showfileprefix}.${layerfilename}.${detaillevelset}.${localnamenow}.${showfileext}
+export showfile=${showfilepath}/${showfileprefix}.${detaillevelset}.${localnamenow}.${showfileext}
 
-echo | tee -a -i ${logfilepath}
-#printf "%-${tcol01}s = %s\n" 'showfile' "${showfile}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'showfile : '${detaillevelset} "${showfile}" | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo
+#printf "%-${tcol01}s = %s\n" 'showfile' "${showfile}"
+printf "%-${tcol01}s = %s\n" 'showfile : '${detaillevelset} "${showfile}"
+echo
 
 export MgmtCLI_Base_OpParms='-f json'
 export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='details-level full use-object-dictionary false '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='limit 100 offset 0 '${MgmtCLI_Show_OpParms}
+#export MgmtCLI_Show_OpParms='details-level standard '${MgmtCLI_Base_OpParms}
+#export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
+export MgmtCLI_Show_OpParms='limit 100 offset 0 '${MgmtCLI_Show_OpParms}
 
-#mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} ${MgmtCLI_Show_OpParms} > "${showfile}"
-mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" ${MgmtCLI_Show_OpParms} > "${showfile}"
-#mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
+#mgmt_cli -r true --port ${apisslport} show threat-profiles limit 25 offset 0 details-level full --format json > "${showfile}"
+mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} ${MgmtCLI_Show_OpParms} > "${showfile}"
 
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
@@ -520,10 +446,154 @@ echo '--------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
-# 
+# Generate Threat Prevention Profiles detailed export for actual import
 # -------------------------------------------------------------------------------------------------
 
 
+echo 'Generate Threat Prevention Profiles detailed export for actual import' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#export exportexportfileheader=${exportfilepath}/${exportfileprefix}.export.header.${exportfileext}
+
+export exportexportfile=${exportfilepath}/${exportfileprefix}.export.${localnamenow}.${exportfileext}
+
+
+#export csvheader=''
+#export csvheader=${csvheader}', '
+
+export csvheader=''
+#export csvheader=${csvheader}', "name"'
+export csvheader=${csvheader}'"name", "color", "comments"'
+export csvheader=${csvheader}', "active-protections-performance-impact", "active-protections-severity"'
+export csvheader=${csvheader}', "confidence-level-low", "confidence-level-medium", "confidence-level-high"'
+export csvheader=${csvheader}', "ips"'
+export csvheader=${csvheader}', "ips-settings.newly-updated-protections", "ips-settings.exclude-protection-with-performance-impact", "ips-settings.exclude-protection-with-severity"'
+export csvheader=${csvheader}', "malicious-mail-policy-settings.email-action", "malicious-mail-policy-settings.remove-attachments-and-links", "malicious-mail-policy-settings.malicious-attachments-text", "malicious-mail-policy-settings.failed-to-scan-attachments-text", "malicious-mail-policy-settings.malicious-links-text", "malicious-mail-policy-settings.add-x-header-to-email"'
+export csvheader=${csvheader}', "malicious-mail-policy-settings.add-email-subject-prefix", "malicious-mail-policy-settings.email-subject-prefix-text", "malicious-mail-policy-settings.add-customized-text-to-email-body", "malicious-mail-policy-settings.email-body-customized-text", "malicious-mail-policy-settings.send-copy"'
+export csvheader=${csvheader}', "scan-malicious-links.max-bytes", "scan-malicious-links.max-links"'
+export csvheader=${csvheader}', "threat-emulation", "anti-virus", "anti-bot"'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export csvheader=${csvheader}', "overrides.'${i}'.protection"'
+    #export csvheader=${csvheader}', "overrides.'${i}'.protection-uid"'
+    export csvheader=${csvheader}', "overrides.'${i}'.action", "overrides.'${i}'.track", "overrides.'${i}'.capture-packets"'
+done
+export csvheader=${csvheader}', "use-extended-attributes"'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.name"'
+    #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.uid"'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        #export csvheader=${csvheader}', "activate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    #done
+#done
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.name"'
+    #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.uid"'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.name"'
+        #export csvheader=${csvheader}', "deactivate-protections-by-extended-attributes.'${i}'.values.'${j}'.uid"'
+    #done
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+export csvheader=${csvheader}', "use-indicators"'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.action", "indicator-overrides.'${i}'.indicator"'
+    #export csvheader=${csvheader}', "indicator-overrides.'${i}'.uid"'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
+export csvheader=${csvheader}', "ignore-warnings", "ignore-errors"'
+
+#echo ${csvheader} > ${exportexportfileheader}
+
+echo | tee -a -i ${logfilepath}
+#printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'csvheader' "${csvheader}" | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+
+#export jsonvaluekeys=''
+#export jsonvaluekeys=${jsonvaluekeys}', '
+
+export jsonvaluekeys=''
+#export jsonvaluekeys=${jsonvaluekeys}', .["name"]'
+export jsonvaluekeys=${jsonvaluekeys}'.["name"], .["color"], .["comments"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["active-protections-performance-impact"], .["active-protections-severity"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["confidence-level-low"], .["confidence-level-medium"], .["confidence-level-high"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["ips"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["ips-settings"]["newly-updated-protections"], .["ips-settings"]["exclude-protection-with-performance-impact"], .["ips-settings"]["exclude-protection-with-severity"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["email-action"], .["malicious-mail-policy-settings"]["remove-attachments-and-links"], .["malicious-mail-policy-settings"]["malicious-attachments-text"], .["malicious-mail-policy-settings"]["failed-to-scan-attachments-text"], .["malicious-mail-policy-settings"]["malicious-links-text"], .["malicious-mail-policy-settings"]["add-x-header-to-email"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["malicious-mail-policy-settings"]["add-email-subject-prefix"], .["malicious-mail-policy-settings"]["email-subject-prefix-text"], .["malicious-mail-policy-settings"]["add-customized-text-to-email-body"], .["malicious-mail-policy-settings"]["email-body-customized-text"], .["malicious-mail-policy-settings"]["send-copy"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["scan-malicious-links"]["max-bytes"], .["scan-malicious-links"]["max-links"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["threat-emulation"], .["anti-virus"], .["anti-bot"]'
+for i in `seq ${minarray} ${maxoverridearray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["protection-uid"]'
+    export jsonvaluekeys=${jsonvaluekeys}', .["overrides"]['${i}']["override"]["action"], .["overrides"]['${i}']["override"]["track"], .["overrides"]['${i}']["override"]["capture-packets"]'
+done
+export jsonvaluekeys=${jsonvaluekeys}', .["use-extended-attributes"]'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["name"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["uid"]'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["name"]'
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-activate"]['${i}']["values"]['${j}']["uid"]'
+    #done
+#done
+#for i in `seq ${minarray} ${maxextattributesarray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["name"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["uid"]'
+    #for j in `seq ${minarray} ${maxextattributesvaluesarray}` ; do
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["name"]'
+        #export jsonvaluekeys=${jsonvaluekeys}', .["extended-attributes-to-deactivate"]['${i}']["values"]['${j}']["uid"]'
+    #done
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+export jsonvaluekeys=${jsonvaluekeys}', .["use-indicators"]'
+# -------------------------------------------------------------------------------------------------
+# COMMENT OUT
+# - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-
+#for i in `seq ${minarray} ${maxoverridearray}` ; do
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["action"], .["indicator-overrides"]['${i}']["indicator"]'
+    #export jsonvaluekeys=${jsonvaluekeys}', .["indicator-overrides"]['${i}']["uid"]'
+#done
+# - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\-
+# COMMENT OUT
+# -------------------------------------------------------------------------------------------------
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
+export jsonvaluekeys=${jsonvaluekeys}', true, true'
+
+echo | tee -a -i ${logfilepath}
+#printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'jsonvaluekeys' "${jsonvaluekeys}" | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+echo ${csvheader} > ${exportexportfile} 
+
+cat ${showfile} | ${JQ} -r '.profiles[] | [ '"${jsonvaluekeys}"' ] | @csv ' >> ${exportexportfile} 
+
+echo '-------------------------------------------------------------------------------------------------'
+
+#cat ${exportexportfile}
 
 
 # -------------------------------------------------------------------------------------------------

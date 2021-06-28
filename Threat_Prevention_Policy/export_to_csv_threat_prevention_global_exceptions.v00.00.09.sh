@@ -14,9 +14,9 @@
 #
 #
 
-ScriptVersion=00.00.08
+ScriptVersion=00.00.09
 ScriptRevision=000
-ScriptDate=2021-06-14
+ScriptDate=2021-06-22
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -112,6 +112,29 @@ echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+# Export output array controls
+# -------------------------------------------------------------------------------------------------
+
+
+export minarray=0
+export maxarray=9
+export maxtagsarray=9
+export maxinstallarray=4
+
+# Access Control Specific
+export maxaccessarray=9
+
+# Threat Prevention Specific
+export maxoverridearray=9
+export maxextattributesarray=9
+export maxextattributesvaluesarray=4
+
+
+# HTTPS Inspection Specific
+export maxbladearray=7
+
+
+# -------------------------------------------------------------------------------------------------
 # Setup control variables
 # -------------------------------------------------------------------------------------------------
 
@@ -133,16 +156,21 @@ export script_operation=export
 #export script_operation=export_only
 #export script_operation=import
 
-#export api_show_command=
+export api_show_command=
 #export api_show_command='show access-layer'
 #export api_show_command='show access-layers'
 #export api_show_command='show access-rulebase'
+#export api_show_command='show https-layer'
+#export api_show_command='show https-layers'
+#export api_show_command='show https-rulebase'
 #export api_show_command='show threat-layer'
-export api_show_command='show threat-rulebase'
-#export api_show_command='show threat-rule-exception-rulebase'
+#export api_show_command='show threat-rulebase'
+export api_show_command='show threat-rule-exception-rulebase'
 #export api_show_command='show threat-profiles'
 
 export api_add_command=
+#export api_add_command='add https-layer'
+#export api_add_command='add https-rule'
 #export api_add_command='add threat-layer'
 #export api_add_command='add threat-rule'
 #export api_add_command='add threat-exception'
@@ -510,8 +538,9 @@ export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
 export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
 export MgmtCLI_Show_OpParms='limit 500 offset 0 '${MgmtCLI_Show_OpParms}
 
-#mgmt_cli -r true show threat-rulebase name "${layername}" limit 500 offset 0 use-object-dictionary false details-level full -f json > "${showfile}"
-mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" ${MgmtCLI_Show_OpParms} > "${showfile}"
+#mgmt_cli -r true show threat-rule-exception-rulebase name "${layername}" rule-number 1 limit 100 offset 0 details-level full use-object-dictionary false -f json > "${showfile}"
+#mgmt_cli -r true show threat-rule-exception-rulebase name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
+mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
 
 # -------------------------------------------------------------------------------------------------
 
@@ -531,8 +560,9 @@ export MgmtCLI_Show_OpParms='details-level standard '${MgmtCLI_Base_OpParms}
 export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
 export MgmtCLI_Show_OpParms='limit 500 offset 0 '${MgmtCLI_Show_OpParms}
 
-#mgmt_cli -r true show threat-rulebase name "${layername}" limit 500 offset 0 use-object-dictionary false details-level standard -f json > "${showfile}"
-mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" ${MgmtCLI_Show_OpParms} > "${showfile}"
+#mgmt_cli -r true show threat-rule-exception-rulebase name "${layername}" rule-number 1 limit 100 offset 0 details-level standard use-object-dictionary false -f json > "${showfile}"
+#mgmt_cli -r true show threat-rule-exception-rulebase name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
+mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
 
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
@@ -542,55 +572,62 @@ echo '--------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
-# Generate Threat Prevention Rulebase detailed export for reference
+# Generate Exception Group Name from rulebase export
 # -------------------------------------------------------------------------------------------------
 
 
-echo 'Generate Threat Prevention Rulebase detailed export for reference' | tee -a -i ${logfilepath}
+export jsonrootkeyvalues=`cat ${showfile} | ${JQ} '.rulebase[] | .name '`
+
+export jsonrootkeyvalue4file=${jsonrootkeyvalues// /_}
+export jsonrootkeyvalue4file=${jsonrootkeyvalue4file//\"}
+
+
+# -------------------------------------------------------------------------------------------------
+# Generate Threat Prevention Global Exceptions Rulebase detailed export for reference
+# -------------------------------------------------------------------------------------------------
+
+
+echo 'Generate Threat Prevention Global Exceptions Rulebase detailed export for reference' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
-#export exportfileheader=${exportfileprefix}.${forreferenceonlytext}.header.${exportfileext}
+#export exportfileheader=${exportfileprefix}.${jsonrootkeyvalue4file}.${forreferenceonlytext}.header.${exportfileext}
 
-export exportfile=${exportfilepath4reference}/${exportfileprefix}.${layerfilename}.${forreferenceonlytext}.${localnamenow}.csv
+export exportfile=${exportfilepath4reference}/${exportfileprefix}.${jsonrootkeyvalue4file}.${forreferenceonlytext}.${localnamenow}.${exportfileext}
 
 
 #export csvheader=''
 #export csvheader=${csvheader}', '
 
-export csvheader='"layer"'
-export csvheader=${csvheader}', "name", "rule-number"'
-export csvheader=${csvheader}', "source.0.name", "source.0.type"'
-export csvheader=${csvheader}', "source.1.name", "source.1.type"'
-export csvheader=${csvheader}', "source.2.name", "source.2.type"'
-export csvheader=${csvheader}', "source.3.name", "source.3.type"'
-export csvheader=${csvheader}', "source.4.name", "source.4.type"'
-export csvheader=${csvheader}', "source.5.name", "source.5.type"'
+export csvheader='"layer", "exception-group-name"'
+export csvheader=${csvheader}', "name", "exception-number", "type", "uid"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "source.'${i}'.name", "source.'${i}'.type", "source.'${i}'.uid"'
+done
 export csvheader=${csvheader}', "source-negate"'
-export csvheader=${csvheader}', "destination.0.name", "destination.0.type"'
-export csvheader=${csvheader}', "destination.1.name", "destination.1.type"'
-export csvheader=${csvheader}', "destination.2.name", "destination.2.type"'
-export csvheader=${csvheader}', "destination.3.name", "destination.3.type"'
-export csvheader=${csvheader}', "destination.4.name", "destination.4.type"'
-export csvheader=${csvheader}', "destination.5.name", "destination.5.type"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "destination.'${i}'.name", "destination.'${i}'.type", "destination.'${i}'.uid"'
+done
 export csvheader=${csvheader}', "destination-negate"'
-export csvheader=${csvheader}', "service.0.name", "service.0.type"'
-export csvheader=${csvheader}', "service.1.name", "service.1.type"'
-export csvheader=${csvheader}', "service.2.name", "service.2.type"'
-export csvheader=${csvheader}', "service.3.name", "service.3.type"'
-export csvheader=${csvheader}', "service.4.name", "service.4.type"'
-export csvheader=${csvheader}', "service.5.name", "service.5.type"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "service.'${i}'.name", "service.'${i}'.type", "service.'${i}'.uid"'
+done
 export csvheader=${csvheader}', "service-negate"'
-export csvheader=${csvheader}', "protected-scope.0.name", "protected-scope.0.type"'
-export csvheader=${csvheader}', "protected-scope.1.name", "protected-scope.1.type"'
-export csvheader=${csvheader}', "protected-scope.2.name", "protected-scope.2.type"'
-export csvheader=${csvheader}', "protected-scope.3.name", "protected-scope.3.type"'
-export csvheader=${csvheader}', "protected-scope.4.name", "protected-scope.4.type"'
-export csvheader=${csvheader}', "protected-scope.5.name", "protected-scope.5.type"'
-export csvheader=${csvheader}', "protected-scope-negate"'
-export csvheader=${csvheader}', "track.name", "track-settings.packet-capture"'
-export csvheader=${csvheader}', "action.name", "action.type"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "protected-scope.'${i}'.name", "protected-scope.'${i}'.type", "protected-scope.'${i}'.uid"'
+done
+export csvheader=${csvheader}', "protected-negate"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "protection-or-site.'${i}'.name", "protection-or-site.'${i}'.type", "protection-or-site.'${i}'.uid"'
+done
+export csvheader=${csvheader}', "action.name", "action.type", "action.uid"'
+export csvheader=${csvheader}', "track.name", "track.uid"'
 export csvheader=${csvheader}', "enabled", "comments"'
-export csvheader=${csvheader}', "install-on.0.name", "install-on.0.type"'
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
+for i in `seq ${minarray} ${maxinstallarray}` ; do
+    export csvheader=${csvheader}', "install-on.'${i}'.name", "install-on.'${i}'.type", "install-on.'${i}'.uid"'
+done
 
 #echo ${csvheader} > ${exportfileheader}
 
@@ -603,40 +640,37 @@ echo | tee -a -i ${logfilepath}
 #export jsonvaluekeys=''
 #export jsonvaluekeys=${jsonvaluekeys}', '
 
-export jsonvaluekeys="${layername}"
-export jsonvaluekeys=${jsonvaluekeys}', .["name"], .["rule-number"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][0]["name"], .["source"][0]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][1]["name"], .["source"][1]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][2]["name"], .["source"][2]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][3]["name"], .["source"][3]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][4]["name"], .["source"][4]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][5]["name"], .["source"][5]["type"]'
+export jsonvaluekeys="${layername}"', '"${jsonrootkeyvalues}"
+export jsonvaluekeys=${jsonvaluekeys}', .["name"], .["exception-number"], .["type"], .["uid"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["source"]['${i}']["name"], .["source"]['${i}']["type"], .["source"]['${i}']["uid"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["source-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][0]["name"], .["destination"][0]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][1]["name"], .["destination"][1]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][2]["name"], .["destination"][2]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][3]["name"], .["destination"][3]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][4]["name"], .["destination"][4]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][5]["name"], .["destination"][5]["type"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["destination"]['${i}']["name"], .["destination"]['${i}']["type"], .["destination"]['${i}']["uid"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["destination-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][0]["name"], .["service"][0]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][1]["name"], .["service"][1]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][2]["name"], .["service"][2]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][3]["name"], .["service"][3]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][4]["name"], .["service"][4]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][5]["name"], .["service"][5]["type"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["service"]['${i}']["name"], .["service"]['${i}']["type"], .["service"]['${i}']["uid"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["service-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][0]["name"], .["protected-scope"][0]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][1]["name"], .["protected-scope"][1]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][2]["name"], .["protected-scope"][2]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][3]["name"], .["protected-scope"][3]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][4]["name"], .["protected-scope"][4]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][5]["name"], .["protected-scope"][5]["type"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"]['${i}']["name"], .["protected-scope"]['${i}']["type"], .["protected-scope"]['${i}']["uid"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["track"]["name"], .["track-settings"]["packet-capture"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["action"]["name"], .["action"]["type"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["enabled"], .["comments"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["install-on"][0]["name"], .["install-on"][0]["type"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["protection-or-site"]['${i}']["name"], .["protection-or-site"]['${i}']["type"], .["protection-or-site"]['${i}']["uid"]'
+done
+export jsonvaluekeys=${jsonvaluekeys}', .["action"]["name"], .["action"]["type"], .["action"]["uid"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["track"]["name"], .["track"]["uid"]'
+export csvheader=${csvheader}', "enabled", "comments"'
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
+for i in `seq ${minarray} ${maxinstallarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["install-on"]['${i}']["name"], .["install-on"]['${i}']["type"], .["install-on"]['${i}']["uid"]'
+done
 
 echo | tee -a -i ${logfilepath}
 #printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
@@ -645,7 +679,7 @@ echo | tee -a -i ${logfilepath}
 
 echo ${csvheader} > ${exportfile} 
 
-cat ${showfile} | ${JQ} -r '.rulebase[] | [ '"${jsonvaluekeys}"' ] | @csv ' >> ${exportfile} 
+cat ${showfile} | ${JQ} -r '.rulebase[].rulebase[] | [ '"${jsonvaluekeys}"' ] | @csv ' >> ${exportfile} 
 
 echo '-------------------------------------------------------------------------------------------------'
 
@@ -653,55 +687,53 @@ echo '--------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
-# Generate Threat Prevention Rulebase detailed export for actual import
+# Generate Threat Prevention Global Exceptions Rulebase detailed export for actual import
 # -------------------------------------------------------------------------------------------------
 
 
-echo 'Generate Threat Prevention Rulebase detailed export for actual import'
+echo 'Generate Threat Prevention Global Exceptions Rulebase detailed export for actual import'
 echo
 
-#export exportexportfileheader=${exportfilepath}/${exportfileprefix}.export.header.${exportfileext}
+#export exportexportfileheader=${exportfilepath}/${exportfileprefix}.${jsonrootkeyvalue4file}.export.header.${exportfileext}
 
-export exportexportfile=${exportfilepath}/${exportfileprefix}.${layerfilename}.export.${localnamenow}.csv
+export exportexportfile=${exportfilepath}/${exportfileprefix}.${jsonrootkeyvalue4file}.export.${localnamenow}.${exportfileext}
 
 
 #export csvheader=''
 #export csvheader=${csvheader}', '
 
-export csvheader='"layer"'
+#export csvheader='"layer", "exception-group-name"'
+export csvheader='"exception-group-name"'
+#export csvheader=${csvheader}', "name", "position", "rule-number"'
 export csvheader=${csvheader}', "name", "position"'
-export csvheader=${csvheader}', "source.0"'
-export csvheader=${csvheader}', "source.1"'
-export csvheader=${csvheader}', "source.2"'
-export csvheader=${csvheader}', "source.3"'
-export csvheader=${csvheader}', "source.4"'
-export csvheader=${csvheader}', "source.5"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "source.'${i}'"'
+done
 export csvheader=${csvheader}', "source-negate"'
-export csvheader=${csvheader}', "destination.0"'
-export csvheader=${csvheader}', "destination.1"'
-export csvheader=${csvheader}', "destination.2"'
-export csvheader=${csvheader}', "destination.3"'
-export csvheader=${csvheader}', "destination.4"'
-export csvheader=${csvheader}', "destination.5"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "destination.'${i}'"'
+done
 export csvheader=${csvheader}', "destination-negate"'
-export csvheader=${csvheader}', "service.0"'
-export csvheader=${csvheader}', "service.1"'
-export csvheader=${csvheader}', "service.2"'
-export csvheader=${csvheader}', "service.3"'
-export csvheader=${csvheader}', "service.4"'
-export csvheader=${csvheader}', "service.5"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "service.'${i}'"'
+done
 export csvheader=${csvheader}', "service-negate"'
-export csvheader=${csvheader}', "protected-scope.0"'
-export csvheader=${csvheader}', "protected-scope.1"'
-export csvheader=${csvheader}', "protected-scope.2"'
-export csvheader=${csvheader}', "protected-scope.3"'
-export csvheader=${csvheader}', "protected-scope.4"'
-export csvheader=${csvheader}', "protected-scope.5"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "protected-scope.'${i}'"'
+done
 export csvheader=${csvheader}', "protected-scope-negate"'
-export csvheader=${csvheader}', "track", "track-settings.packet-capture"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export csvheader=${csvheader}', "protection-or-site.'${i}'.name"'
+done
 export csvheader=${csvheader}', "action"'
+export csvheader=${csvheader}', "track"'
 export csvheader=${csvheader}', "enabled", "comments"'
-export csvheader=${csvheader}', "install-on.0"'
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export csvheader=${csvheader}', "tags.'${i}'"'
+done
+for i in `seq ${minarray} ${maxinstallarray}` ; do
+    export csvheader=${csvheader}', "install-on.'${i}'"'
+done
 export csvheader=${csvheader}', "ignore-warnings", "ignore-errors"'
 
 #echo ${csvheader} > ${exportexportfileheader}
@@ -712,45 +744,42 @@ printf "%-${tcol01}s = %s\n" 'csvheader' "${csvheader}" | tee -a -i ${logfilepat
 echo | tee -a -i ${logfilepath}
 
 
-#export jsonvaluekeys='.["name"], .["type"], .["exception-number"], .["source"][0]["name"], .["source"][0]["type"], .["source"][1]["name"], .["source"][1]["type"], .["source-negate"], .["destination"][0]["name"], .["destination"][0]["type"], .["destination"][1]["name"], .["destination"][1]["type"], .["destination-negate"], .["protected-scope"][0]["name"], .["protected-scope"][0]["type"], .["protected-scope"][1]["name"], .["protected-scope"][0]["type"], .["protected-scope-negate"], .["protection-or-site"][0]["name"], .["protection-or-site"][0]["type"], .["protection-or-site"][1]["name"], .["protection-or-site"][1]["type"], .["protection-or-site"][2]["name"], .["protection-or-site"][2]["type"], .["track"]["name"], .["action"]["name"], .["enabled"], .["comments"], .["install-on"][0]["name"], .["install-on"][0]["type"]'
-
 #export jsonvaluekeys=''
 #export jsonvaluekeys=${jsonvaluekeys}', '
 
-export jsonvaluekeys="${layername}"
-export jsonvaluekeys=${jsonvaluekeys}', .["name"], .["rule-number"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][0]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][1]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][2]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][4]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["source"][5]["name"]'
+#export jsonvaluekeys="${layername}"', '"${jsonrootkeyvalues}"
+export jsonvaluekeys="${jsonrootkeyvalues}"
+#export jsonvaluekeys=${jsonvaluekeys}', .["name"], .["exception-number"]'
+#export jsonvaluekeys=${jsonvaluekeys}', .["name"], "bottom", .["exception-number"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["name"], "bottom"'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["source"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["source-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][0]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][1]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][2]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][4]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["destination"][5]["name"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["destination"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["destination-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][0]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][1]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][2]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][4]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["service"][5]["name"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["service"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["service-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][0]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][1]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][2]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][3]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][4]["name"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"][5]["name"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["protected-scope-negate"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["track"]["name"], .["track-settings"]["packet-capture"]'
+for i in `seq ${minarray} ${maxarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["protection-or-site"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', .["action"]["name"]'
+export jsonvaluekeys=${jsonvaluekeys}', .["track"]["name"]'
 export jsonvaluekeys=${jsonvaluekeys}', .["enabled"], .["comments"]'
-export jsonvaluekeys=${jsonvaluekeys}', .["install-on"][0]["name"]'
+for i in `seq ${minarray} ${maxtagsarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["tags"]['${i}']["name"]'
+done
+for i in `seq ${minarray} ${maxinstallarray}` ; do
+    export jsonvaluekeys=${jsonvaluekeys}', .["install-on"]['${i}']["name"]'
+done
 export jsonvaluekeys=${jsonvaluekeys}', true, true'
 
 echo | tee -a -i ${logfilepath}
@@ -760,7 +789,7 @@ echo | tee -a -i ${logfilepath}
 
 echo ${csvheader} > ${exportexportfile} 
 
-cat ${showfile} | ${JQ} -r '.rulebase[] | [ '"${jsonvaluekeys}"' ] | @csv ' >> ${exportexportfile} 
+cat ${showfile} | ${JQ} -r '.rulebase[].rulebase[] | [ '"${jsonvaluekeys}"' ] | @csv ' >> ${exportexportfile} 
 
 echo '-------------------------------------------------------------------------------------------------'
 
