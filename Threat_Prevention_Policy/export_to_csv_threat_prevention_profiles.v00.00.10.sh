@@ -14,9 +14,10 @@
 #
 #
 
-ScriptVersion=00.00.09
+ScriptVersion=00.00.10
 ScriptRevision=000
-ScriptDate=2021-06-22
+ScriptSubRevision=000
+ScriptDate=2022-01-17
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -64,7 +65,7 @@ fi
 
 echo | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Script:  '$(basename $0)'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}'  Date: '${ScriptDate} | tee -a -i ${logfilepath}
+echo 'Script:  '$(basename $0)'  Script Version: '${ScriptVersion}'  Revision:SubRevision: '${ScriptRevision}':'${ScriptSubRevision}'  Date: '${ScriptDate} | tee -a -i ${logfilepath}
 echo 'Script original call name :  '$0 $@ | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
@@ -75,6 +76,8 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2023-01-17 -
+
 export gaiaversion=
 cpreleasefile=/etc/cp-release
 if [ -r ${cpreleasefile} ] ; then
@@ -83,7 +86,29 @@ if [ -r ${cpreleasefile} ] ; then
 else
     # OK that's not going to work without the file
     
-    get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    #get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    
+    # Working on R81.20 EA or later, where python3 replaces the regular python call
+    #
+    if [ -r ${pythonpath}/python3 ] ; then
+        # Working on R81.20 EA or later, where python3 replaces the regular python call
+        #
+        export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #if ${UseJSONJQ} ; then
+            #export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+        #else
+            #export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #fi
+    else
+        # Not working with python3 available, trying the regular python
+        #
+        export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #if ${UseJSONJQ} ; then
+            #export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+        #else
+            #export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #fi
+    fi
     
     platform_release=${get_platform_release//\"/}
     get_platform_release_version=`echo ${platform_release} | cut -d " " -f 4`
@@ -102,8 +127,27 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
-get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${CPDIR_PATH}/jq/jq '. | .external_port'`
-api_local_port=${get_api_local_port//\"/}
+# MODIFIED 2023-01-17 -
+
+# Working on R81.20 EA or later, where python3 replaces the regular python call
+#
+
+if [ -r ${pythonpath}/python3 ] ; then
+    # Working on R81.20 EA or later, where python3 replaces the regular python call
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export get_api_local_port=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+else
+    # Not working MaaS so will check locally for Gaia web SSL port setting
+    # Removing dependency on clish to avoid collissions when database is locked
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+fi
 export apisslport=${api_local_port}
 
 #printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}

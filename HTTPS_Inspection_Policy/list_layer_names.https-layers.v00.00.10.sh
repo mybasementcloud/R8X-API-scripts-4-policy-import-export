@@ -10,13 +10,14 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
-# SCRIPT Rough Example for importing threat prevention rule base exported to CSV with the export script
+# SCRIPT Rough Example for generating a list of layers for selection of a specific layer for show output - HTTPS Inspection layers
 #
 #
 
-ScriptVersion=00.00.09
+ScriptVersion=00.00.10
 ScriptRevision=000
-ScriptDate=2021-06-22
+ScriptSubRevision=000
+ScriptDate=2022-01-17
 TemplateVersion=@NA
 APISubscriptsLevel=@NA
 APISubscriptsVersion=@NA
@@ -64,7 +65,7 @@ fi
 
 echo | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Script:  '$(basename $0)'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}'  Date: '${ScriptDate} | tee -a -i ${logfilepath}
+echo 'Script:  '$(basename $0)'  Script Version: '${ScriptVersion}'  Revision:SubRevision: '${ScriptRevision}':'${ScriptSubRevision}'  Date: '${ScriptDate} | tee -a -i ${logfilepath}
 echo 'Script original call name :  '$0 $@ | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
@@ -75,6 +76,8 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2023-01-17 -
+
 export gaiaversion=
 cpreleasefile=/etc/cp-release
 if [ -r ${cpreleasefile} ] ; then
@@ -83,7 +86,29 @@ if [ -r ${cpreleasefile} ] ; then
 else
     # OK that's not going to work without the file
     
-    get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    #get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    
+    # Working on R81.20 EA or later, where python3 replaces the regular python call
+    #
+    if [ -r ${pythonpath}/python3 ] ; then
+        # Working on R81.20 EA or later, where python3 replaces the regular python call
+        #
+        export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #if ${UseJSONJQ} ; then
+            #export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+        #else
+            #export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #fi
+    else
+        # Not working with python3 available, trying the regular python
+        #
+        export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #if ${UseJSONJQ} ; then
+            #export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+        #else
+            #export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        #fi
+    fi
     
     platform_release=${get_platform_release//\"/}
     get_platform_release_version=`echo ${platform_release} | cut -d " " -f 4`
@@ -102,8 +127,27 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
-get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${CPDIR_PATH}/jq/jq '. | .external_port'`
-api_local_port=${get_api_local_port//\"/}
+# MODIFIED 2023-01-17 -
+
+# Working on R81.20 EA or later, where python3 replaces the regular python call
+#
+
+if [ -r ${pythonpath}/python3 ] ; then
+    # Working on R81.20 EA or later, where python3 replaces the regular python call
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export get_api_local_port=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+else
+    # Not working MaaS so will check locally for Gaia web SSL port setting
+    # Removing dependency on clish to avoid collissions when database is locked
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+fi
 export apisslport=${api_local_port}
 
 #printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
@@ -144,27 +188,27 @@ export maxbladearray=7
 # Options:  true | false
 #
 export policy_type_Access=false
-export policy_type_Threat=true
-export policy_type_HTTPSI=false
+export policy_type_Threat=false
+export policy_type_HTTPSI=true
 
 #
 # Script Operation Type configuration for script.  ONE of these needs to be true, all others false
 # Options:  export | import | list_layers
 #
-#export script_operation=list_layers
+export script_operation=list_layers
 #export script_operation=export
 #export script_operation=export_only
-export script_operation=import
+#export script_operation=import
 
 export api_show_command=
 #export api_show_command='show access-layer'
 #export api_show_command='show access-layers'
 #export api_show_command='show access-rulebase'
-#export api_show_command='show https-layer'
+export api_show_command='show https-layer'
 #export api_show_command='show https-layers'
 #export api_show_command='show https-rulebase'
 #export api_show_command='show threat-layer'
-export api_show_command='show threat-rulebase'
+#export api_show_command='show threat-rulebase'
 #export api_show_command='show threat-rule-exception-rulebase'
 #export api_show_command='show threat-profiles'
 
@@ -172,12 +216,12 @@ export api_add_command=
 #export api_add_command='add https-layer'
 #export api_add_command='add https-rule'
 #export api_add_command='add threat-layer'
-export api_add_command='add threat-rule'
+#export api_add_command='add threat-rule'
 #export api_add_command='add threat-exception'
 #export api_add_command='add threat-profile'
 
-#export commandfilename=${api_show_command// /_}
-export commandfilename=${api_add_command// /_}
+export commandfilename=${api_show_command// /_}
+#export commandfilename=${api_add_command// /_}
 export commandfilename=${commandfilename//-/_}
 
 export apicommandtarget=${api_show_command#* }
@@ -405,35 +449,60 @@ export MgmtCLI_Authentication='-r true --port '${apisslport}
 
 
 # -------------------------------------------------------------------------------------------------
-# Define Results Output file
+# Get the Array of layers
 # -------------------------------------------------------------------------------------------------
 
 
-#export detaillevelset=standard
-export detaillevelset=full
-#export resultsfile=${resultsfileprefix}.${layerfilename}.${detaillevelset}.${HOSTNAME}.${localnamenow}.${resultsfileext}
-export resultsfile=${resultsfilepath}/${resultsfileprefix}.${detaillevelset}.${HOSTNAME}.${localnamenow}.${resultsfileext}
+echo 'Generate Array of Layers...' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
-#printf "%-${tcol01}s = %s\n" 'resultsfile' "${resultsfile}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'resultsfile : '${detaillevelset} "${resultsfile}" | tee -a -i ${logfilepath}
+export MgmtCLI_Base_OpParms='-f json'
+export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+export MgmtCLI_Show_OpParms='limit 500 offset 0 '${MgmtCLI_Show_OpParms}
+
+GETLAYERSBYNAME="`mgmt_cli ${MgmtCLI_Authentication} show ${package_layer} ${MgmtCLI_Show_OpParms} | ${JQ} '."'${package_layer}'"[].name'`"
+
+LAYERSARRAY=()
+arraylength=0
+
+tcollayer=15
+
+echo 'Layers ('${package_layer}') :  ' | tee -a -i ${logfilepath}
+while read -r line; do
+    
+    #printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
+    if [[ ! " ${LAYERSARRAY[@]} " =~ " ${line} " ]]; then
+        # whatever you want to do when array doesn't contain value
+        LAYERSARRAY+=("${line}")
+        printf "%-${tcollayer}s - %s\n" '+ ADDING' "${line}" | tee -a -i ${logfilepath}
+    else
+        printf "%-${tcollayer}s - %s\n" '! SKIPPING' "${line}" | tee -a -i ${logfilepath}
+    fi
+    
+    arraylength=${#LAYERSARRAY[@]}
+    arrayelement=$((arraylength-1))
+    
+done <<< "${GETLAYERSBYNAME}"
 echo
 
+export arraylistsize=${arrayelement}
+
 
 # -------------------------------------------------------------------------------------------------
-# Define Export Selection file
+# Document/show the current array of layers found and placed in the array
 # -------------------------------------------------------------------------------------------------
 
 
-export selectexportpath=${importfilepath}
-export selectexportfileprefix=${importfileslistprefix}.*.export
-export selectexportfileext=${importfileext}
-export selectexportfile=${selectexportfileprefix}.*.${selectexportfileext}
+echo 'Explicit Layers of type '${package_layer}' found: ' >> ${logfilepath}
 
-printf "%-${tcol01}s = %s\n" 'selectexportpath' "${selectexportpath}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'selectexportfileprefix' "${selectexportfileprefix}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'selectexportfileext' "${selectexportfileext}" | tee -a -i ${logfilepath}
-printf "%-${tcol01}s = %s\n" 'selectexportfile' "${selectexportfile}" | tee -a -i ${logfilepath}
-echo
+export arraylistelement=-1
+
+for j in "${LAYERSARRAY[@]}"
+do
+    export arraylistelement=$((arraylistelement+1))
+    printf "%-5s : %s\n" ${arraylistelement} ${j} >> ${logfilepath}
+done
+echo >> ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -441,28 +510,18 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 
-export selectedfile=
+export arrayelementchoice=
+export layername=
 
 echo | tee -a -i ${logfilepath}
-echo 'Select file for import processing ( 0 for exit/quit ): ' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo 'Select Layer of type '${package_layer}' for processing ( 0 for exit/quit ): ' | tee -a -i ${logfilepath}
 
-export listexportfiles=`ls ${selectexportpath}/${selectexportfile}`
-
-echo >> ${logfilepath}
-echo '===============================================================================' >> ${logfilepath}
-echo ' Files for selection list: ' >> ${logfilepath}
-echo '===============================================================================' >> ${logfilepath}
-ls ${selectexportpath}/${selectexportfile} >> ${logfilepath}
-echo '===============================================================================' >> ${logfilepath}
-echo >> ${logfilepath}
-
-select selectedfile in ${listexportfiles};
+select layername in "${LAYERSARRAY[@]}";
 do
-    echo You picked : ${selectedfile} \(${REPLY}\) | tee -a -i ${logfilepath}
+    echo You picked : ${layername} \(${REPLY}\) | tee -a -i ${logfilepath}
     
-    if [ x"${selectedfile}" == x"" ] ; then
-        echo 'Not valid selection' | tee -a -i ${logfilepath}
+    if [ x"${layername}" == x"" ] ; then
+        echo 'Not legal selection' | tee -a -i ${logfilepath}
         echo 'Exiting...' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         exit 1
@@ -475,66 +534,68 @@ do
     break;
 done
 
-echo 'Selection:  selectedfile : ['${selectedfile}'],  REPLY : ['${REPLY}']' | tee -a -i ${logfilepath}
+echo 'Selection:  layername : ['${layername}'],  REPLY : ['${REPLY}']' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
-printf "%-${tcol01}s = %s\n" 'selectedfile' "${selectedfile}" | tee -a -i ${logfilepath}
+export arrayelementchoice=$((REPLY-1))
+
+
+# -------------------------------------------------------------------------------------------------
+# Show what was selected and names of things
+# -------------------------------------------------------------------------------------------------
+
+
+export layerfilename=${layername// /_}
+export layerfilename=${layerfilename//\"}
+
+#printf "%-${tcol01}s = %s\n" 'X' "${X}" | tee -a -i ${logfilepath}
+
 echo | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'arraylistsize' "${arraylistsize}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'arrayelementchoice' "${arrayelementchoice}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'layername' "${layername}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'layerfilename' "${layerfilename}" | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
 
 # -------------------------------------------------------------------------------------------------
 # Generate working json file of API output for future processing
 # -------------------------------------------------------------------------------------------------
 
 
-#echo 'Generate working json file of API output for future processing...'
+echo 'Generate working json file of API output for future processing...' | tee -a -i ${logfilepath}
 
 #export detaillevelset=standard
-#export detaillevelset=full
-#export showfile=${showfilepath}/${showfileprefix}.${layerfilename}.${detaillevelset}.${localnamenow}.${showfileext}
+export detaillevelset=full
+export showfile=${showfilepath}/${showfileprefix}.${layerfilename}.${detaillevelset}.${localnamenow}.${showfileext}
 #export showfile=${showfilepath}/${showfileprefix}.${detaillevelset}.${localnamenow}.${showfileext}
 
-#echo | tee -a -i ${logfilepath}
-##printf "%-${tcol01}s = %s\n" 'showfile' "${showfile}" | tee -a -i ${logfilepath}
-#printf "%-${tcol01}s = %s\n" 'showfile : '${detaillevelset} "${showfile}" | tee -a -i ${logfilepath}
-#echo | tee -a -i ${logfilepath}
-
-#export MgmtCLI_Base_OpParms='-f json'
-#export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='details-level standard '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='limit 100 offset 0 '${MgmtCLI_Show_OpParms}
-
-#mgmt_cli -r true --port ${apisslport} show threat-profiles limit 25 offset 0 details-level full --format json > "${showfile}"
-#mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} ${MgmtCLI_Show_OpParms} > "${showfile}"
-
-#echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-#ls -alh ${showfile} | tee -a -i ${logfilepath}
-
-#echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-
-# -------------------------------------------------------------------------------------------------
-# Execute Threat Prevention Profiles import
-# -------------------------------------------------------------------------------------------------
-
-
-echo 'Execute Threat Prevention Profiles import' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+#printf "%-${tcol01}s = %s\n" 'showfile' "${showfile}" | tee -a -i ${logfilepath}
+printf "%-${tcol01}s = %s\n" 'showfile : '${detaillevelset} "${showfile}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
-#export exportexportfileheader=${exportfilepath}/${exportfileprefix}.export.header.${exportfileext}
-#export exportexportfile=${exportfilepath}/${exportfileprefix}.export.${localnamenow}.${exportfileext}
-
-export MgmtCLI_Base_OpParms='--ignore-errors true -f json'
+export MgmtCLI_Base_OpParms='-f json'
 export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='details-level standard '${MgmtCLI_Base_OpParms}
-#export MgmtCLI_Show_OpParms='use-object-dictionary false '${MgmtCLI_Base_OpParms}
+#export MgmtCLI_Show_OpParms='details-level full use-object-dictionary false '${MgmtCLI_Base_OpParms}
 #export MgmtCLI_Show_OpParms='limit 100 offset 0 '${MgmtCLI_Show_OpParms}
 
-#mgmt_cli -r true add threat-rule --batch ./z.threat_rulebase.LAYER.export.HOSTNAME.DTGSZ.csv details-level full -f json | tee -a import_threat_rules_${HOSTNAME}_`date +%Y-%m-%d-%H%M%S%Z`.json
-mgmt_cli ${MgmtCLI_Authentication} ${api_add_command} --batch ./${selectedfile} ${MgmtCLI_Show_OpParms} | tee -a ${resultsfile}
+#mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} ${MgmtCLI_Show_OpParms} > "${showfile}"
+mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" ${MgmtCLI_Show_OpParms} > "${showfile}"
+#mgmt_cli ${MgmtCLI_Authentication} ${api_show_command} name "${layername}" rule-number 1 ${MgmtCLI_Show_OpParms} > "${showfile}"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+ls -alh ${showfile} | tee -a -i ${logfilepath}
+
+echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# 
+# -------------------------------------------------------------------------------------------------
+
+
 
 
 # -------------------------------------------------------------------------------------------------
